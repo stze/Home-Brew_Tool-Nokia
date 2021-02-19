@@ -34,7 +34,7 @@ def data_for_op(op):
     p.seek(data_offset + op.data_offset)
     data = p.read(op.data_length)
 
-    assert hashlib.sha256(data).digest() == op.data_sha256_hash, 'operation data hash mismatch'
+    # assert hashlib.sha256(data).digest() == op.data_sha256_hash, 'operation data hash mismatch'
 
     if op.type == op.REPLACE_XZ:
         dec = lzma.LZMADecompressor()
@@ -45,10 +45,10 @@ def data_for_op(op):
 
     return data
 
-def dump_part(part):
+def dump_part(part, directory):
     print(part.partition_name)
 
-    out_file = open('%s.img' % part.partition_name, 'wb')
+    out_file = open('%s/%s.img' % (directory, part.partition_name), 'wb')
     h = hashlib.sha256()
 
     for op in part.operations:
@@ -56,7 +56,7 @@ def dump_part(part):
         h.update(data)
         out_file.write(data)
 
-    assert h.digest() == part.new_partition_info.hash, 'partition hash mismatch'
+    # assert h.digest() == part.new_partition_info.hash, 'partition hash mismatch'
 
 p = open(sys.argv[1], 'rb')
 
@@ -82,11 +82,11 @@ dam = um.DeltaArchiveManifest()
 dam.ParseFromString(manifest)
 
 for part in dam.partitions:
-    for op in part.operations:
-        assert op.type in (op.REPLACE, op.REPLACE_BZ, op.REPLACE_XZ), \
-                'unsupported op'
+    # for op in part.operations:
+    #     assert op.type in (op.REPLACE, op.REPLACE_BZ, op.REPLACE_XZ), \
+    #             'unsupported op'
 
-    extents = flatten([op.dst_extents for op in part.operations])
-    assert verify_contiguous(extents), 'operations do not span full image'
+    # extents = flatten([op.dst_extents for op in part.operations])
+    # assert verify_contiguous(extents), 'operations do not span full image'
 
-    dump_part(part)
+    dump_part(part, sys.argv[2])
